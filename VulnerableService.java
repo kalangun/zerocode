@@ -13,15 +13,15 @@ public class VulnerableService {
 
     public void getUserData(String userId) {
         try {
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/testdb", DB_USER, DB_PASSWORD);
-            Statement statement = conn.createStatement();
-            
             // 2. SQL Injection (Concatenating raw input into SQL query)
             String query = "SELECT * FROM users WHERE id = '" + userId + "'";
-            ResultSet resultSet = statement.executeQuery(query);
-
-            while (resultSet.next()) {
-                System.out.println("User: " + resultSet.getString("username"));
+            try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/testdb", DB_USER, DB_PASSWORD);
+                 Statement statement = conn.createStatement()) {
+                try (ResultSet resultSet = statement.executeQuery(query)) {
+                    while (resultSet.next()) {
+                        System.out.println("User: " + resultSet.getString("username"));
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
