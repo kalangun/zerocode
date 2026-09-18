@@ -10,6 +10,8 @@ public class VulnerableService {
     // 1. Hardcoded Credentials / Secrets
     private static final String DB_USER = "admin";
     private static final String DB_PASSWORD = "SuperSecretPassword123!"; 
+    private static final java.util.regex.Pattern HOST_PATTERN =
+            java.util.regex.Pattern.compile("^[a-zA-Z0-9.-]+$");
 
     public void getUserData(String userId) {
         try {
@@ -30,9 +32,12 @@ public class VulnerableService {
 
     public void executeUserCommand(String userInput) {
         try {
-            // 3. Command Injection (Passing raw user input directly to system shell)
-            String command = "ping -c 1 " + userInput;
-            Process process = Runtime.getRuntime().exec(command);
+            // 3. Command Injection fix: validate input and avoid shell parsing
+            // by passing arguments as an array instead of a concatenated string.
+            if (userInput == null || !HOST_PATTERN.matcher(userInput).matches()) {
+                throw new IllegalArgumentException("Invalid host/IP: " + userInput);
+            }
+            Process process = Runtime.getRuntime().exec(new String[]{"ping", "-c", "1", userInput});
             
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
